@@ -1,0 +1,213 @@
+---
+title: "How The Audio Features of Coldplay's Discography Have Changed Over Time"
+format: pdf
+editor: visual
+author: 
+- "Sophia Brothers"
+- "Bruce Zhang"
+- "Deyi Kong"
+- "Ruizi Liu"
+- "Yuechen Zhang"
+date: today
+date-format: long
+number-sections: true
+bibliography: references.bib
+---
+
+# Introduction
+
+Coldplay is a rock group founded in London 1998 by Chris Martin and Jonny Buckland. They were later joined by Guy Berryman and Will Champion to form the group they are today. Their debut album, called *Parachutes*, was released in 2000 and featured the hit single "Yellow." Over the years, Coldplay has released multiple successful albums, including *A Rush of Blood to the Head* and *Viva la Vida*, earning them numerous awards, including multiple Grammy Awards [@coldplay].
+
+# Analysis
+
+We fetched audio features for Coldplay's songs, focusing on the following characteristics:
+
+-   Duration: the length of a song measured in minutes [@spotifydocumentation].
+
+-   Valence: The valence is the positivity of the musical piece. This is measured as a numermical value between 0.0 and 1.0. The higher the valence, the more the song can be described as positive, upbeat, and joyful. On the other end of the spectrum, the lower the valence value, the more the song will be descibed as down, sad, and sorrowful \[@SpotifyDocumentation\].
+
+-   Danceability: The danceability of a song is how suitable the song is to be danced to. Danceability can usually characterized by tempo, rhythm stability, beat strength, and overall regularity. This is also a numerical value that is between 0.0 to 1.0, where the closer the value is to 1.0, the more danceable the song is characterized to be [@SpotifyDocumentation].
+
+-   Energy: The level of energy in a song is a numerical value between 0.0 and 1.0 that is shown by intensity and activity of the song. More energetic songs are usually faster, louder, and noisier. This measure is a perceptual measure [@SpotifyDocumentation].
+
+-   Instrumentalness: Instrumentalness is defined as the amount of non-vocal sounds of a song. It is a value between 0.0 and 1.0, where values above 0.5 are songs that do not contain vocals. The closer the value gets to 1.0, the higher confidence that no vocal sounds are included. In this case, vocalizations such as “ooh” or “aah” are included as non-vocal sounds [@SpotifyDocumentation].
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+#| echo: false
+library(spotifyr)
+library(tidyverse)
+
+access_token <- get_spotify_access_token()
+
+coldplay <- get_artist_audio_features("coldplay")
+saveRDS(coldplay, "coldplay.rds")
+
+coldplay <- readRDS("coldplay.rds")
+
+coldplay <- as_tibble(coldplay)
+```
+
+We first analyzed the duration of Coldplay's songs over time. @fig-songduration illustrates how the lengths of Coldplay's songs have evolved across various albums. Overall, the average duration of songs has gone down with the release of a new album, although remains relatively stable.
+
+```{r}
+#| label: fig-songduration
+#| fig-cap: Coldplay Song Duration Over Time
+#| echo: false
+#| warning: false
+#| message: false
+coldplay |>
+  select(album_release_date, duration_ms) |>
+  mutate(
+    album_release_date = ymd(album_release_date),
+    duration_minutes = duration_ms / 60000
+  ) |> 
+  ggplot(aes(x = album_release_date, y = duration_minutes)) +
+  geom_point(alpha = 0.3, color = "red") +
+  geom_smooth(color = "darkred") +
+  theme_minimal() +
+  labs(
+    title = "Coldplay Song Duration Over Time",
+    x = "Album Release Date",
+    y = "Song Duration (minutes)"
+  )
+```
+
+Next we looked at valence, which measures how 'positive' a song is, has steadily gone up over time. As displayed in @fig-valence, Coldplay's first album had it's lowest valence score and their most recent album has had the highest valence score of their discography yet, showing that the albums they release now are on average more positive than those they released towards the start of their career.
+
+```{r}
+#| label: fig-valence
+#| fig-cap: Coldplay Valence Over Time
+#| echo: false
+#| warning: false
+#| message: false
+coldplay |>
+  select(album_release_date, valence) |>
+  mutate(album_release_date = ymd(album_release_date)) |> 
+  ggplot(aes(x = album_release_date, y = valence)) +
+  geom_point(alpha = 0.3, color = "blue") +
+  geom_smooth(color = "darkblue") +
+  theme_minimal() +
+  labs(
+    title = "Coldplay Valence (Positivity) Over Time",
+    x = "Album Release Date",
+    y = "Valence"
+  )
+```
+
+Next, in @fig-danceability, we examined the relationship between danceability and energy in Coldplay's music over time. @fig-danceability displays how these two features correlate across albums. We see here that Coldplay's albums start with high danceability, before decreasing and going back up again.
+
+```{r}
+#| label: fig-danceability
+#| fig-cap: Coldplay Danceability Over Time
+#| echo: false
+#| warning: false
+#| message: false
+
+coldplay |>
+  select(album_release_date, danceability) |>
+  mutate(album_release_date = ymd(album_release_date)) |> 
+  ggplot(aes(x = album_release_date, y = danceability)) +
+  geom_point(alpha = 0.3, color = "green") +
+  geom_smooth(color = "darkgreen") +
+  theme_minimal() +
+  labs(
+    title = "Coldplay Danceability Over Time",
+    x = "Album Release Date",
+    y = "Danceability"
+  )
+
+```
+
+Energy follows the opposite pattern of danceability. In @fig-energy we see that energy starts low while rising steadily and reaches it's peak between 2010 and 2015, before going back down until the present year.
+
+```{r}
+#| label: fig-energy
+#| fig-cap: Coldplay Energy Over Time
+#| echo: false
+#| warning: false
+#| message: false
+
+coldplay |>
+  select(album_release_date, energy) |>
+  mutate(album_release_date = ymd(album_release_date)) |> 
+  ggplot(aes(x = album_release_date, y = energy)) +
+  geom_point(alpha = 0.3, color = "orange") +
+  geom_smooth(color = "darkorange") +
+  theme_minimal() +
+  labs(
+    title = "Coldplay Energy Over Time",
+    x = "Album Release Date",
+    y = "Energy"
+  )
+
+```
+
+Lastly, we looked at the instrumentalness of Coldplay's songs and how this feature has varied over their discography. As shown in @fig-instrumentalness, Instrumentalness went up with each subsequent album release before plateauing at it's current level. Since reaching it's peak, all albums subsequently released by Coldplay have had the same level of instrumentalness.
+
+```{r}
+#| label: fig-instrumentalness
+#| fig-cap: Coldplay Instrumentalness Over Time
+#| echo: false
+#| warning: false
+#| message: false
+
+coldplay |>
+  select(album_release_date, instrumentalness) |>
+  mutate(album_release_date = ymd(album_release_date)) |> 
+  ggplot(aes(x = album_release_date, y = instrumentalness)) +
+  geom_point(alpha = 0.3, color = "cyan") +
+  geom_smooth(color = "darkcyan") +
+  theme_minimal() +
+  labs(
+    title = "Coldplay Instrumentalness Over Time",
+    x = "Album Release Date",
+    y = "Instrumentalness"
+  )
+
+```
+
+\newpage
+
+# Appendix
+
+This data comes from Spotify and uses the Spotify for Developers platform [@SpotifyData2024]. We used R [@citeR] and the R Packages tidyverse [@tidyverse] and spotifyr [@spotifyr] to analyze this data and access the Spotify API.
+
+```{r}
+#| label: fig-summary
+#| fig-cap: Summary statistics for the audio features of Coldplay's discography.
+#| echo: false
+#| warning: false
+#| message: false
+summary_data <- coldplay %>%
+  summarise(
+    Avg_Duration = mean(duration_ms, na.rm = TRUE) / 60000,
+    Avg_Energy = mean(energy, na.rm = TRUE),
+    Avg_Valence = mean(valence, na.rm = TRUE),
+    Avg_Danceability = mean(danceability, na.rm = TRUE),
+    Avg_Instrumentalness = mean(instrumentalness, na.rm = TRUE)
+  )
+
+summary_data_long <- summary_data %>%
+  pivot_longer(cols = everything(), names_to = "Feature", values_to = "Average")
+
+ggplot(summary_data_long, aes(x = Feature, y = Average, fill = Feature)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +  
+  theme_minimal() +
+  labs(title = "Average Audio Features of Coldplay",
+       x = "Audio Feature",
+       y = "Average Value") +
+  scale_fill_brewer(palette = "Set3") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  )
+
+
+```
+
+\newpage
+
+# References {#references}
